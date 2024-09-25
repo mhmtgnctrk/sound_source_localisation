@@ -7,7 +7,7 @@ b1=time.time()
 
 ### 4 vectors that defines the x-y-z coordinates of a 2-D square that lies on X-Z plane an its center is at (0,0,0)
 # Define the side length of the square
-side_length = 20
+side_length = 40
 
 # Define the coordinates of the four vertices
 v1 = np.array([-side_length/2, 0, -side_length/2])

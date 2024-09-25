@@ -13,7 +13,7 @@ c = 343000
 
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
-vir_source = np.array([rng.random()*200-100, rng.random()*400.0+200, rng.random()*30.0-15])
+vir_source = np.array([rng.random()*400-200, rng.random()*200.0+300, rng.random()*30.0-15])
 
 # Mikrofon konumları (mm cinsinden)
 m1 = np.array([mic_span / 2, 0.0, -mic_span * 3**0.5 / 2])
@@ -24,16 +24,21 @@ m5 = np.array([mic_span / 2, 0.0, mic_span * 3**0.5 / 2])
 m6 = np.array([mic_span, 0.0, 0.0])
 m7 = np.array([0.0, 0.0, 0.0])
 
+
 # Mikrofonları bir diziye ekleyelim
-mic_array = np.array([m1, m2, m3, m4, m5, m6, m7])
+mic_array6 = np.array([m1, m2, m3, m4, m5, m6, m7])
 
 # Mikrofonlar arası sesin kat ettiği mesafeleri hesaplayalım
-dist_travs = np.array([LA.norm(vir_source - m) for m in mic_array])
+dist_travs = np.array([LA.norm(vir_source - m) for m in mic_array6])
 
 # Referans mikrofonu (m7) seçelim
 ref_mic = m7
-ref_index = 6  # m7 referans mikrofon olduğundan, dizideki konumu 6
+for idx, m in enumerate(mic_array6):
+    if np.array_equal(ref_mic, m):
+        ref_index = idx
+        continue
 
+print(ref_index)
 # Mesafe farkları (Referans mikrofona göre)
 range_difs = dist_travs - dist_travs[ref_index]
 
@@ -46,6 +51,9 @@ print("\nGerçek ses konumu: ", vir_source)
 # Hesaplanan TDOA'ları yazdıralım
 print("\nHesaplanan TDOA'lar:", tdoas)
 
+# Ağırlık matrisi (mikrofonlardan gelen veriye güvenimiz)
+weights = np.array([1.0, 1.0, 0.5, 1.0, 1.0, 0.5, 1.0])
+
 ### HESAPLANAN TDOA'YI INPUT OLARAK KULLANIP KONUM TAHMINİ
 
 # Başlangıç tahmini konum (ilk varsayım)
@@ -56,20 +64,20 @@ x, y, z = sp.symbols('x y z')
 guess = sp.Matrix([x, y, z])
 
 # Mikrofon pozisyonlarının sembolik matrise dönüştürülmesi
-sym_mic_array = [sp.Matrix(mic) for mic in mic_array]
+sym_mic_array6 = [sp.Matrix(mic) for mic in mic_array6]
 
 # Referans mikrofon konumunun sembolik matrise dönüşmesi
-sym_ref_mic = sym_mic_array[ref_index]  # Doğru referans mikrofon konumu seçildi
+sym_ref_mic = sym_mic_array6[ref_index]  # Doğru referans mikrofon konumu seçildi
 
 # A ve B matrislerini sembolik olarak oluşturma fonksiyonu
-def compute_A_and_B_sym(guess, sym_mic_array, calc_ran_difs):
+def compute_A_and_B_sym(guess, sym_mic_array6, calc_ran_difs):
     A = []
     B = []
 
     # Mikrofon sayısı (n)
-    num_mics = len(sym_mic_array)
+    num_mics = len(sym_mic_array6)
 
-    for i, mic in enumerate(sym_mic_array):
+    for i, mic in enumerate(sym_mic_array6):
         if i == ref_index:
             continue  # Referans mikrofonu atla, çünkü ona göre farklar hesaplanıyor
 
@@ -80,11 +88,11 @@ def compute_A_and_B_sym(guess, sym_mic_array, calc_ran_difs):
         d_i = sp.sqrt((guess - mic).dot(guess - mic))
 
         # A matrisi: her mikrofonun tahmine göre doğrusal oranları
-        A_row = [(g - m) / d_i for g, m in zip(guess, mic)]
+        A_row = [(g - m) / d_i * weights[i] for g, m in zip(guess, mic)]
         A.append(A_row)
 
         # B vektörü: mesafe farklarının ifadesi
-        B_val = calc_ran_difs[i] - (d_i - d_ref)
+        B_val = (calc_ran_difs[i] - (d_i - d_ref)) * weights[i]
         B.append(B_val)
 
     # Liste olarak toplanan A ve B'yi matris formuna dönüştürelim
@@ -97,7 +105,7 @@ calc_ran_difs = tdoas * c
 
 # İterasyon sayısı ve hata toleransı belirlenir
 max_iterations = 100
-tolerance = 1e-1
+tolerance = 0.1
 
 # Başlangıç tahmini
 current_guess = initial_guess
@@ -107,7 +115,7 @@ giris=time.time()
 # İterasyon döngüsü
 for iteration in range(max_iterations):
     # Sembolik A ve B matrislerini hesapla
-    A_sym, B_sym = compute_A_and_B_sym(guess, sym_mic_array, calc_ran_difs)
+    A_sym, B_sym = compute_A_and_B_sym(guess, sym_mic_array6, calc_ran_difs)
 
     # Sayısal A ve B matrislerini mevcut tahmine göre hesapla
     A_numeric = np.array(A_sym.subs({x: current_guess[0], y: current_guess[1], z: current_guess[2]})).astype(np.float64)
@@ -141,22 +149,25 @@ fig = plt.figure(figsize=(10, 8))
 ax = fig.add_subplot(111, projection='3d')
 
 # Mikrofonların konumlarını çiz
-mic_positions = np.array(mic_array)
+mic_positions = np.array(mic_array6)
 ax.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
 
 # Gerçek ses kaynağını çiz
-ax.scatter(vir_source[0], vir_source[1], vir_source[2], c='g', marker='*', label='Gerçek Ses Kaynağı', s=200)
+ax.scatter(vir_source[0], vir_source[1], vir_source[2], c='g', marker='*', label=f'Gerçek Ses Kaynağı: {np.around(vir_source,2)}', s=200)
 
 # Tahmin edilen ses kaynağını çiz
-ax.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label='Tahmin Edilen Konum', s=150)
+ax.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label=f'Tahmin Edilen Konum: {np.around(current_guess,2)}', s=150)
 
 # Grafik detayları
-ax.set_xlabel('X Eksen (mm)')
-ax.set_ylabel('Y Eksen (mm)')
-ax.set_zlabel('Z Eksen (mm)')
+ax.set_xlabel('X Ekseni (mm)')
+ax.set_ylabel('Y Ekseni (mm)')
+ax.set_zlabel('Z Ekseni (mm)')
 ax.set_title('Mikrofonlar, Gerçek ve Tahmin Edilen Ses Kaynağı Konumları')
 ax.legend()
 plt.grid(True)
+ax.set_xlim(-300,300)
+ax.set_ylim(0,600)
+ax.set_zlim(-300,300)
 plt.show()
 
 """
