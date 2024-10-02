@@ -121,9 +121,9 @@ def __gcc_phat(sig, refsig, fs=1, interp=16, lowcut=None, highcut=None):
     
     return tau
 
-fs = 16000  # Örnekleme frekansı
-t = np.linspace(0, 5.0, fs)  # 1 saniyelik zaman dizisi
-freq = 1000  # 1 kHz frekans
+# fs = 16000  # Örnekleme frekansı
+# t = np.linspace(0, 5.0, fs)  # 1 saniyelik zaman dizisi
+# freq = 1000  # 1 kHz frekans
 
 # İki sinyal arasında bir gecikme
 # sig1 = np.sin(2 * np.pi * freq * t)
@@ -140,8 +140,11 @@ freq = 1000  # 1 kHz frekans
 def gcc_phat_array(mic_array, ref_mic, fs=1, interp=16, lowcut=None, highcut=None):
     time_delays=[]
     progress_bar1 = tqdm(total=len(mic_array)-1)
-    for i in range(len(mic_array)-1):
-        tau = __gcc_phat(ref_mic, mic_array[i+1], fs=fs, interp=interp, lowcut=lowcut, highcut=highcut)
+    for i in range(len(mic_array)):
+        if np.array_equal(ref_mic,mic_array[i]):
+            time_delays.append(0)
+            continue
+        tau = __gcc_phat(ref_mic, mic_array[i], fs=fs, interp=interp, lowcut=lowcut, highcut=highcut)
         time_delays.append(tau)
         progress_bar1.update(1)
     return time_delays
