@@ -5,7 +5,6 @@ import time
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
-
 from math import *
 from tqdm import tqdm
 
@@ -48,13 +47,11 @@ act_mpos= np.array([mpos[0], mpos[3], mpos[12], mpos[6], mpos[15]])
 # Mikrofonlar arası sesin kat ettiği mesafeleri hesaplayalım
 # dist_travs = np.array([LA.norm(vir_source - m) for m in mic_array6])
 
-
 # Mesafe farkları (Referans mikrofona göre)
 # range_difs = dist_travs - dist_travs[ref_index]
 
 # Zaman farkları (mesafe farklarını ses hızına böleriz)
 # tdoas = range_difs / c
-
 
 # # GHerçek ses konumunu yazdıralım
 # print("\nGerçek ses konumu: ", vir_source)
@@ -108,7 +105,7 @@ for i in f.readlines():
 tdoas=np.array(tdoas)
 
 # Başlangıç tahmini konum (ilk varsayım)
-initial_guess = np.array([10,10,10])
+initial_guess = np.array([-100,100,0])
 
 # Sembolik değişkenleri tanımlayalım
 x, y, z = sp.symbols('x y z')
@@ -118,7 +115,7 @@ guess = sp.Matrix([x, y, z])
 sym_mic_array = [sp.Matrix(mic) for mic in mpos]
 
 # Referans mikrofon sembolik
-sym_ref_mic = sym_mic_array[ref_index] 
+sym_ref_mic = sym_mic_array[ref_index]
 
 # Hesaplanan mesafe farkları (mm)
 calc_ran_difs = tdoas * c
@@ -194,10 +191,6 @@ for iteration in range(max_iterations):
 print(f"\nSon Tahmin: {current_guess}")
 #print(f"\nIterasyon süresi (sn): {cikis-giris}")
 
-
-
-
-
 plt.ioff()
 # Gerçek ses kaynağını çiz
 #ax.scatter(vir_source[0], vir_source[1], vir_source[2], c='g', marker='*', label=f'Gerçek Ses Kaynağı: {np.around(vir_source,2)}', s=200)
@@ -209,13 +202,14 @@ ax2.set_xlabel('X Ekseni (mm)')
 ax2.set_ylabel('Y Ekseni (mm)')
 ax2.set_zlabel('Z Ekseni (mm)')
 ax2.set_title('Mikrofonlar, Gerçek ve Tahmin Edilen Ses Kaynağı Konumları')
-ax2.legend()
+
 plt.grid(True)
 ax2.set_xlim(-300,300)
 ax2.set_ylim(0,600)
 ax2.set_zlim(-300,300)
 ax2.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
 ax2.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label=f'Tahmin Edilen Konum: {np.around(current_guess,2)}', s=150)
+ax2.legend(loc="upper left")
 plt.show()
 
 """
