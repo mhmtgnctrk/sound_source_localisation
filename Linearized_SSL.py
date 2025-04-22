@@ -21,14 +21,15 @@ ref_index=0
 
 # Mikrofon pozisyonları (mm)
 d1 = sqrt(50**2-25**2)
-mpos = np.array([[0, 0, 0],     [0, 0, 50],     [0, 0, 100],    [0, 0, 150], 
+"""mpos = np.array([[0, 0, 0],     [0, 0, 50],     [0, 0, 100],    [0, 0, 150], 
                 [d1, 0, 25],    [d1, 0, 75],    [d1, 0, 125],   [d1, 0, 175], 
                 [2*d1, 0, 0],   [2*d1, 0, 50],  [2*d1, 0, 100], [2*d1, 0, 150], 
                 [3*d1, 0, 25],  [3*d1, 0, 75],  [3*d1, 0, 125], [3*d1, 0, 175]])
-
+"""
+mpos = np.array([[-113, 0, 0],     [36, 0, 0],     [76, 0, 0],    [113, 0, 0]])
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
-vir_source = np.array([rng.random()*400-200, rng.random()*200.0+300, rng.random()*30.0-15])
+#vir_source = np.array([rng.random()*400-200, rng.random()*200.0+300, rng.random()*30.0-15])
 
 # Mikrofon konumları (mm cinsinden)
 # m1 = np.array([mic_span / 2, 0.0, -mic_span * 3**0.5 / 2])
@@ -39,8 +40,8 @@ vir_source = np.array([rng.random()*400-200, rng.random()*200.0+300, rng.random(
 # m6 = np.array([mic_span, 0.0, 0.0])
 # m7 = np.array([0.0, 0.0, 0.0])
 
-act_mpos= np.array([mpos[0], mpos[3], mpos[12], mpos[6], mpos[15]])
-
+#act_mpos= np.array([mpos[0], mpos[3], mpos[12], mpos[6], mpos[15]])
+act_mpos= np.array([mpos[0], mpos[1], mpos[2], mpos[3]])
 # Mikrofonları bir diziye ekleyelim
 # mic_array6 = np.array([m1, m2, m3, m4, m5, m6, m7])
 
@@ -60,10 +61,7 @@ act_mpos= np.array([mpos[0], mpos[3], mpos[12], mpos[6], mpos[15]])
 # print("\nHesaplanan TDOA'lar:", tdoas)
 
 # Ağırlık matrisi (mikrofonlardan gelen veriye güvenimiz)
-weights = np.array([1,      0.1,    0.1,    1, 
-                    0.1,    1,      0.1,    0.1, 
-                    0.5,    0.1,    0.1,    0.5,
-                    1,      0.1,    0.1,    1])
+weights = np.array([0, 0.3, 0.6, 1])
 
 ### HESAPLANAN TDOA'YI INPUT OLARAK KULLANIP KONUM TAHMINİ
 
@@ -105,7 +103,7 @@ for i in f.readlines():
 tdoas=np.array(tdoas)
 
 # Başlangıç tahmini konum (ilk varsayım)
-initial_guess = np.array([-100,100,0])
+initial_guess = np.array([0,500,0])
 
 # Sembolik değişkenleri tanımlayalım
 x, y, z = sp.symbols('x y z')
@@ -121,8 +119,8 @@ sym_ref_mic = sym_mic_array[ref_index]
 calc_ran_difs = tdoas * c
 
 # İterasyon sayısı ve hata toleransı belirlenir
-max_iterations = 100
-tolerance = 10
+max_iterations = 3
+tolerance = 15
 
 # Başlangıç tahmini
 current_guess = initial_guess
@@ -142,12 +140,12 @@ ax.set_xlabel('X Ekseni (mm)')
 ax.set_ylabel('Y Ekseni (mm)')
 ax.set_zlabel('Z Ekseni (mm)')
 ax.set_title('Mikrofonlar, Gerçek ve Tahmin Edilen Ses Kaynağı Konumları')
-ax.legend()
+
 plt.grid(True)
 ax.set_xlim(-300,300)
 ax.set_ylim(0,600)
 ax.set_zlim(-300,300)
-
+ax.legend()
 # Mikrofonların konumlarını çiz
 mic_positions = np.array(mpos)
 ax.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
@@ -190,6 +188,19 @@ for iteration in range(max_iterations):
 
 print(f"\nSon Tahmin: {current_guess}")
 #print(f"\nIterasyon süresi (sn): {cikis-giris}")
+def angle_between_vectors_np(u, v):
+    u = np.array(u)
+    v = np.array(v)
+    cos_theta = np.dot(u, v) / (np.linalg.norm(u) * np.linalg.norm(v))
+    angle_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0))
+    angle_deg = np.degrees(angle_rad)
+    return angle_rad, angle_deg
+# Example usage
+vector_u = current_guess
+vector_v = [1, 0, 0]  
+angle_rad, angle_deg = angle_between_vectors_np(vector_u, vector_v)
+print(f"Angle between vectors (in radians): {angle_rad}")
+print(f"Angle between vectors (in degrees): {angle_deg}")
 
 plt.ioff()
 # Gerçek ses kaynağını çiz
@@ -209,6 +220,7 @@ ax2.set_ylim(0,600)
 ax2.set_zlim(-300,300)
 ax2.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
 ax2.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label=f'Tahmin Edilen Konum: {np.around(current_guess,2)}', s=150)
+ax2.plot([0,current_guess[0]],[0,current_guess[1]],[0,current_guess[2]])
 ax2.legend(loc="upper left")
 plt.show()
 
