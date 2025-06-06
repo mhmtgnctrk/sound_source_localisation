@@ -10,9 +10,9 @@ fs = None
 # 16 mikrofonun wav dosyalarını okuma
 for i in range(1, 5):
     if i <=9:
-        filename = f'D:\py_venvs\gpt_created\mic_{i}.wav'
+        filename = f'E:\git_projects\sound_source_localisation\sound_source_localisation\mic{i}.wav'
     else:
-        filename = f'D:\py_venvs\gpt_created\mic_{i}.wav'
+        filename = f'E:\git_projects\sound_source_localisation\sound_source_localisation\mic{i}.wav'
     fs, data = wavfile.read(filename)
     mic_data.append(data)
 
@@ -21,25 +21,6 @@ mic_data = np.array(mic_data)
 mics, samples = mic_data.shape
 print(f"Sampling rate: {fs}")
 print(f"Data shape (microphones, samples): {mics, samples}")
-"""alt_lim=round(samples*13/30)
-ust_lim=round(samples*17/30)
-trimmed_mic_data = []
-for m in mic_data:
-    trimmed_mic_data.append(m[alt_lim:ust_lim])
-print(trimmed_mic_data)
-
-trimmed_mic_data = np.array(trimmed_mic_data)
-
-
-# Referans mikrofon
-ref_mic = trimmed_mic_data[0]
-for idx, m in enumerate(trimmed_mic_data):
-    if np.array_equal(ref_mic, m):
-        ref_index = idx
-        continue
-
-tdoas = gcc_phat_array(trimmed_mic_data,ref_mic,fs=fs, interp=32)
-"""
 
 # Referans mikrofon
 ref_mic = mic_data[0]

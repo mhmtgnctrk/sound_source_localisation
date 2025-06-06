@@ -121,21 +121,6 @@ def __gcc_phat(sig, refsig, fs=1, interp=16, lowcut=None, highcut=None):
     
     return tau
 
-# fs = 16000  # Örnekleme frekansı
-# t = np.linspace(0, 5.0, fs)  # 1 saniyelik zaman dizisi
-# freq = 1000  # 1 kHz frekans
-
-# İki sinyal arasında bir gecikme
-# sig1 = np.sin(2 * np.pi * freq * t)
-# sig2 = np.sin(2 * np.pi * freq * (t - 0.005))  # gecikmeli sinyal
-
-
-# Estimate the TDOA using GCC-PHAT with band-pass filtering
-# time_delays = []
-
-# act_mic_data = np.array([mic_data[0], mic_data[3], mic_data[12], mic_data[6], mic_data[15]])
-
-
 # Her mikrofon çifti arasındaki zaman farkını hesapla
 def gcc_phat_array(mic_array, ref_mic, fs=1, interp=16, lowcut=None, highcut=None):
     time_delays=[]
@@ -155,11 +140,13 @@ def print_tdoa(time_delays):
     for mic1, mic2, tau in time_delays:
        print(f"\nTime delay between microphone {mic1} and microphone {mic2}: {tau:.6f} seconds")
 
-# Gerçek sinyalleri görselleştirme
-# fig, axs = plt.subplots(len(act_mic_data))
-# for idx,m in enumerate(act_mic_data):
-#     axs[idx]=plt.specgram(m, Fs=fs, vmin=-50, scale='dB')
-# plt.colorbar()
-# plt.grid()
-# plt.tight_layout()
-# plt.show()
+
+def visualize_gcc_phat(act_mic_data):
+    # Gerçek sinyalleri görselleştirme
+    fig, axs = plt.subplots(len(act_mic_data))
+    for idx,m in enumerate(act_mic_data):
+        axs[idx]=plt.specgram(m, Fs=fs, vmin=-50, scale='dB')
+    plt.colorbar()
+    plt.grid()
+    plt.tight_layout()
+    plt.show()

@@ -8,60 +8,22 @@ from mpl_toolkits.mplot3d import Axes3D
 from math import *
 from tqdm import tqdm
 
-#act_mic_data = np.array([mic_data[0], mic_data[3], mic_data[12], mic_data[6], mic_data[15]])
-
-# Mikrofon arası en düşük mesafe (mm cinsinden)
-# mic_span = 40.0
-
 # Ses hızı (mm/s)
 c = 343000
 
 # Ref mikrofon
 ref_index=0
 
-# Mikrofon pozisyonları (mm)
-d1 = sqrt(50**2-25**2)
-"""mpos = np.array([[0, 0, 0],     [0, 0, 50],     [0, 0, 100],    [0, 0, 150], 
-                [d1, 0, 25],    [d1, 0, 75],    [d1, 0, 125],   [d1, 0, 175], 
-                [2*d1, 0, 0],   [2*d1, 0, 50],  [2*d1, 0, 100], [2*d1, 0, 150], 
-                [3*d1, 0, 25],  [3*d1, 0, 75],  [3*d1, 0, 125], [3*d1, 0, 175]])
-"""
 mpos = np.array([[-113, 0, 0],     [36, 0, 0],     [76, 0, 0],    [113, 0, 0]])
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
-#vir_source = np.array([rng.random()*400-200, rng.random()*200.0+300, rng.random()*30.0-15])
 
-# Mikrofon konumları (mm cinsinden)
-# m1 = np.array([mic_span / 2, 0.0, -mic_span * 3**0.5 / 2])
-# m2 = np.array([-mic_span / 2, 0.0, -mic_span * 3**0.5 / 2])
-# m3 = np.array([-mic_span, 0.0, 0.0])
-# m4 = np.array([-mic_span / 2, 0.0, mic_span * 3**0.5 / 2])
-# m5 = np.array([mic_span / 2, 0.0, mic_span * 3**0.5 / 2])
-# m6 = np.array([mic_span, 0.0, 0.0])
-# m7 = np.array([0.0, 0.0, 0.0])
 
 #act_mpos= np.array([mpos[0], mpos[3], mpos[12], mpos[6], mpos[15]])
 act_mpos= np.array([mpos[0], mpos[1], mpos[2], mpos[3]])
-# Mikrofonları bir diziye ekleyelim
-# mic_array6 = np.array([m1, m2, m3, m4, m5, m6, m7])
-
-# Mikrofonlar arası sesin kat ettiği mesafeleri hesaplayalım
-# dist_travs = np.array([LA.norm(vir_source - m) for m in mic_array6])
-
-# Mesafe farkları (Referans mikrofona göre)
-# range_difs = dist_travs - dist_travs[ref_index]
-
-# Zaman farkları (mesafe farklarını ses hızına böleriz)
-# tdoas = range_difs / c
-
-# # GHerçek ses konumunu yazdıralım
-# print("\nGerçek ses konumu: ", vir_source)
-
-# # Hesaplanan TDOA'ları yazdıralım
-# print("\nHesaplanan TDOA'lar:", tdoas)
 
 # Ağırlık matrisi (mikrofonlardan gelen veriye güvenimiz)
-weights = np.array([0, 0.3, 0.6, 1])
+weights = np.array([1, 1, 1, 0.7])
 
 ### HESAPLANAN TDOA'YI INPUT OLARAK KULLANIP KONUM TAHMINİ
 
@@ -69,9 +31,6 @@ weights = np.array([0, 0.3, 0.6, 1])
 def compute_A_and_B_sym(guess, sym_mic_array, calc_ran_difs):
     A = []
     B = []
-
-    # Mikrofon sayısı (n)
-    # num_mics = len(sym_mic_array)
 
     for i, mic in enumerate(sym_mic_array):
         if i == ref_index:
@@ -119,14 +78,12 @@ sym_ref_mic = sym_mic_array[ref_index]
 calc_ran_difs = tdoas * c
 
 # İterasyon sayısı ve hata toleransı belirlenir
-max_iterations = 3
-tolerance = 15
+max_iterations = 10
+tolerance = 10
 
 # Başlangıç tahmini
 current_guess = initial_guess
 print(f"\nBaşlangıç Tahmini: {current_guess}")
-
-#giris=time.time()
 
 progress_bar2 = tqdm(total=max_iterations)
 
@@ -142,7 +99,7 @@ ax.set_zlabel('Z Ekseni (mm)')
 ax.set_title('Mikrofonlar, Gerçek ve Tahmin Edilen Ses Kaynağı Konumları')
 
 plt.grid(True)
-ax.set_xlim(-300,300)
+ax.set_xlim(-500,500)
 ax.set_ylim(0,600)
 ax.set_zlim(-300,300)
 ax.legend()
@@ -180,14 +137,13 @@ for iteration in range(max_iterations):
     fig.canvas.draw()
     
     fig.canvas.flush_events()
-    #time.sleep(0.1)
+
     # Güncel tahmini konum, bir sonraki iterasyon için kullanılır
     current_guess = new_guess
     progress_bar2.update(1)
-#cikis=time.time()
 
 print(f"\nSon Tahmin: {current_guess}")
-#print(f"\nIterasyon süresi (sn): {cikis-giris}")
+
 def angle_between_vectors_np(u, v):
     u = np.array(u)
     v = np.array(v)
@@ -195,16 +151,15 @@ def angle_between_vectors_np(u, v):
     angle_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0))
     angle_deg = np.degrees(angle_rad)
     return angle_rad, angle_deg
-# Example usage
-vector_u = current_guess
-vector_v = [1, 0, 0]  
-angle_rad, angle_deg = angle_between_vectors_np(vector_u, vector_v)
+
+vector_u = [1, 0, 0]
+vector_v = current_guess 
+angle_rad, angle_deg = angle_between_vectors_np(vector_v, vector_u)
 print(f"Angle between vectors (in radians): {angle_rad}")
 print(f"Angle between vectors (in degrees): {angle_deg}")
 
 plt.ioff()
 # Gerçek ses kaynağını çiz
-#ax.scatter(vir_source[0], vir_source[1], vir_source[2], c='g', marker='*', label=f'Gerçek Ses Kaynağı: {np.around(vir_source,2)}', s=200)
 fig2 = plt.figure(figsize=(10, 8))
 ax2 = fig2.add_subplot(111, projection='3d')
 
@@ -215,12 +170,13 @@ ax2.set_zlabel('Z Ekseni (mm)')
 ax2.set_title('Mikrofonlar, Gerçek ve Tahmin Edilen Ses Kaynağı Konumları')
 
 plt.grid(True)
-ax2.set_xlim(-300,300)
+ax2.set_xlim(-500,500)
 ax2.set_ylim(0,600)
 ax2.set_zlim(-300,300)
 ax2.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
 ax2.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label=f'Tahmin Edilen Konum: {np.around(current_guess,2)}', s=150)
-ax2.plot([0,current_guess[0]],[0,current_guess[1]],[0,current_guess[2]])
+ax2.scatter(400, 500, 0, c='r', marker='x', label=f'Gerçek Konum: {(400,500,0)}', s=150)
+ax2.plot([0,current_guess[0],400],[0,current_guess[1],500],[0,current_guess[2],0])
 ax2.legend(loc="upper left")
 plt.show()
 
