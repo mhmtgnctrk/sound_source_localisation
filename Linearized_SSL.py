@@ -14,7 +14,7 @@ c = 343000
 # Ref mikrofon
 ref_index=0
 
-mpos = np.array([[-113, 0, 0],     [36, 0, 0],     [76, 0, 0],    [113, 0, 0]])
+mpos = np.array([[113, 0, 0],     [-36, 0, 0],     [-76, 0, 0],    [-113, 0, 0]])
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
 
@@ -23,7 +23,7 @@ rng = np.random.default_rng()
 act_mpos= np.array([mpos[0], mpos[1], mpos[2], mpos[3]])
 
 # Ağırlık matrisi (mikrofonlardan gelen veriye güvenimiz)
-weights = np.array([1, 1, 1, 0.7])
+weights = np.array([1, 1, 1, 1])
 
 ### HESAPLANAN TDOA'YI INPUT OLARAK KULLANIP KONUM TAHMINİ
 
@@ -62,7 +62,7 @@ for i in f.readlines():
 tdoas=np.array(tdoas)
 
 # Başlangıç tahmini konum (ilk varsayım)
-initial_guess = np.array([0,500,0])
+initial_guess = np.array([0,550,0])
 
 # Sembolik değişkenleri tanımlayalım
 x, y, z = sp.symbols('x y z')
@@ -78,8 +78,8 @@ sym_ref_mic = sym_mic_array[ref_index]
 calc_ran_difs = tdoas * c
 
 # İterasyon sayısı ve hata toleransı belirlenir
-max_iterations = 10
-tolerance = 10
+max_iterations = 5
+tolerance = 20
 
 # Başlangıç tahmini
 current_guess = initial_guess
@@ -124,6 +124,7 @@ for iteration in range(max_iterations):
 
     # Güncellemeleri yazdır
     print(f"\nİterasyon {iteration + 1}:")
+    
     print(f"Delta X: {delta_x}")
     print(f"Yeni Tahmin: {new_guess}")
 
@@ -151,12 +152,23 @@ def angle_between_vectors_np(u, v):
     angle_rad = np.arccos(np.clip(cos_theta, -1.0, 1.0))
     angle_deg = np.degrees(angle_rad)
     return angle_rad, angle_deg
-
+gercek_konum=[300,450,0]
 vector_u = [1, 0, 0]
-vector_v = current_guess 
-angle_rad, angle_deg = angle_between_vectors_np(vector_v, vector_u)
-print(f"Angle between vectors (in radians): {angle_rad}")
-print(f"Angle between vectors (in degrees): {angle_deg}")
+vector_guess = current_guess 
+vector_real = gercek_konum
+angle_rad_guess, angle_deg_guess = angle_between_vectors_np(vector_guess, vector_u)
+angle_rad_real, angle_deg_real = angle_between_vectors_np(vector_real, vector_u)
+tahmin_mesafe=np.linalg.norm(current_guess)
+gercek_mesafe=np.linalg.norm(gercek_konum)
+print(f"Angle between vectors of guessed (in radians): {angle_rad_guess}")
+print(f"Angle between vectors of guessed (in degrees): {angle_deg_guess}")
+print(f"Angle between vectors of real (in radians): {angle_rad_real}")
+print(f"Angle between vectors of real (in degrees): {angle_deg_real}")
+print(f"Angle error (in radians): {angle_rad_real - angle_rad_guess}")
+print(f"Angle error (in degrees): {angle_deg_real - angle_deg_guess}")
+print(f"Guessed length: {tahmin_mesafe}")
+print(f"Guessed length: {gercek_mesafe}")
+print(f"Mesafe Hatası: {gercek_mesafe-tahmin_mesafe}")
 
 plt.ioff()
 # Gerçek ses kaynağını çiz
@@ -175,8 +187,8 @@ ax2.set_ylim(0,600)
 ax2.set_zlim(-300,300)
 ax2.scatter(mic_positions[:, 0], mic_positions[:, 1], mic_positions[:, 2], c='b', label='Mikrofonlar', s=100)
 ax2.scatter(current_guess[0], current_guess[1], current_guess[2], c='r', marker='^', label=f'Tahmin Edilen Konum: {np.around(current_guess,2)}', s=150)
-ax2.scatter(400, 500, 0, c='r', marker='x', label=f'Gerçek Konum: {(400,500,0)}', s=150)
-ax2.plot([0,current_guess[0],400],[0,current_guess[1],500],[0,current_guess[2],0])
+ax2.scatter(gercek_konum[0], gercek_konum[1], gercek_konum[2], c='r', marker='x', label=f'Gerçek Konum: {gercek_konum}', s=150)
+ax2.plot([0,current_guess[0],gercek_konum[0]],[0,current_guess[1],gercek_konum[1]],[0,current_guess[2],gercek_konum[2]])
 ax2.legend(loc="upper left")
 plt.show()
 

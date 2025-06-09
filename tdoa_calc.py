@@ -1,13 +1,14 @@
 import scipy.io.wavfile as wavfile
 import numpy as np
-from gcc_phat import *
+import gcc_phat_interp as gpi
+import gcc_phat as gp
 from math import *
 
 # Mikrofon kayıtlarını saklayacak liste
 mic_data = []
 fs = None
 
-# 16 mikrofonun wav dosyalarını okuma
+# 4 mikrofonun wav dosyalarını okuma
 for i in range(1, 5):
     if i <=9:
         filename = f'E:\git_projects\sound_source_localisation\sound_source_localisation\mic{i}.wav'
@@ -29,7 +30,7 @@ for idx, m in enumerate(mic_data):
         ref_index = idx
         continue
 
-tdoas = gcc_phat_array(mic_data,ref_mic,fs=fs, interp=32)
+tdoas = gpi.gcc_phat_array(mic_data,ref_mic,fs=fs)
 f = open("tdoa/tdoas.txt", "w")
     
 for tdoa in tdoas:
