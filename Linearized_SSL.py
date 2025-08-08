@@ -15,6 +15,7 @@ c = 343200
 ref_index=0
 
 mpos = np.array([[-225/2, 225/2, 9],     [225/2, 225/2, 9],     [225/2, -225/2, 0],    [-225/2, -225/2, 0]])
+#mpos = np.array([[113, 0, 0],     [-36, 0, 0],     [-72, 0, 0],    [-113, 0, 0]])
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
 
@@ -64,7 +65,7 @@ tdoas=np.array(tdoas)
 # Başlangıç tahmini konum (ilk varsayım)
 initial_guess = np.array([0,0,50])
 init_array=[]
-for i in range(10,500,1):
+for i in range(10,500,10):
     init_array.append(np.array([0,0,i]))
 
 #print(init_array)
@@ -82,7 +83,7 @@ sym_ref_mic = sym_mic_array[ref_index]
 calc_ran_difs = tdoas * c
 
 # İterasyon sayısı ve hata toleransı belirlenir
-max_iterations = 100
+max_iterations = 20
 tolerance = 21.45
 
 # Başlangıç tahmini
