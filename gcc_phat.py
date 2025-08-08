@@ -9,8 +9,6 @@ from tqdm import tqdm
 
 def __butter_bandpass(lowcut, highcut, fs, order=5):
     
-    # Design a Butterworth bandpass filter.
-    
     # Parameters:
     # lowcut (float): Lower frequency cutoff.
     # highcut (float): Upper frequency cutoff.

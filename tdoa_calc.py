@@ -10,10 +10,11 @@ fs = None
 
 # 4 mikrofonun wav dosyalarını okuma
 for i in range(1, 5):
+    pre_file=r"C:\Users\bn.y.mn\Desktop\sound_source\sound_source_localisation"
     if i <=9:
-        filename = f'E:\git_projects\sound_source_localisation\sound_source_localisation\mic{i}.wav'
-    else:
-        filename = f'E:\git_projects\sound_source_localisation\sound_source_localisation\mic{i}.wav'
+        filename = pre_file + f'\mic{i}.wav' 
+  #  else:
+  #      filename = f'C:\Users\bn.y.mn\Desktop\sound_source\sound_source_localisation\mic{i}.wav'
     fs, data = wavfile.read(filename)
     mic_data.append(data)
 
