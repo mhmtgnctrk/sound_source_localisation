@@ -13,8 +13,9 @@ c = 343200
 
 # Ref mikrofon
 ref_index=0
+a=225.0 # mm cinsinden kare kenar uzunluğu
 
-mpos = np.array([[-225/2, 225/2, 9],     [225/2, 225/2, 9],     [225/2, -225/2, 0],    [-225/2, -225/2, 0]])
+mpos = np.array([[-a/2, a/2, 9],     [a/2, a/2, 9],     [a/2, -a/2, 0],    [-a/2, -a/2, 0]])
 #mpos = np.array([[113, 0, 0],     [-36, 0, 0],     [-72, 0, 0],    [-113, 0, 0]])
 # Sanal ses kaynağının konumu (mm cinsinden)
 rng = np.random.default_rng()
@@ -59,11 +60,11 @@ def compute_A_and_B_sym(guess, sym_mic_array, calc_ran_difs):
 f = open("tdoa/tdoas.txt", "r")
 tdoas=[]
 for i in f.readlines():
-    tdoas.append(float(i))
-tdoas=np.array(tdoas)
+    tdoas.append(float(i))  # ms to seconds
+tdoas=np.array(tdoas) 
 
 # Başlangıç tahmini konum (ilk varsayım)
-initial_guess = np.array([0,0,50])
+#initial_guess = np.array([0,0,50])
 init_array=[]
 for i in range(10,500,10):
     init_array.append(np.array([0,0,i]))
@@ -87,7 +88,7 @@ max_iterations = 20
 tolerance = 21.45
 
 # Başlangıç tahmini
-current_guess = initial_guess
+#current_guess = initial_guess
 #print(f"\nBaşlangıç Tahmini: {current_guess}")
 
 # progress_bar2 = tqdm(total=max_iterations)
@@ -160,7 +161,7 @@ for i in init_array:
     out_array.append(current_guess)
     print(f"\nİlk Tahmin: {initial_guess}")
     print(f"\nSon Tahmin: {current_guess}")
-    gercek_konum=[225/2,225/2,250]
+    gercek_konum=[-222,292,530]
     vector_u = [1, 0, 0]
     vector_guess = current_guess 
     vector_real = gercek_konum
