@@ -3,8 +3,6 @@ import numpy as np
 import gcc_phat_interp as gpi
 import gcc_phat as gp
 from math import *
-
-# ---- YENİ: Matplotlib ve sinyal işleme yardımcıları ----
 import matplotlib.pyplot as plt
 from numpy.fft import fft, ifft, fftfreq
 
@@ -27,12 +25,12 @@ except Exception:
     def _bandpass(x, lowcut, highcut, fs, order=5):
         return x  # scipy yoksa filtresiz
 
-# ---- YENİ: Her adımı çizen yardımcı fonksiyon ----
+# Her adımı çizen yardımcı fonksiyon
 import numpy as np
 import matplotlib.pyplot as plt
 from numpy.fft import fft, ifft, rfft, irfft, rfftfreq, fftfreq
 
-def plot_full_gcc_phat_pipeline_TR(sig, refsig, fs, lowcut=None, highcut=None, interp=16, baslik=""):
+def plot_full_gcc_phat_pipeline_TR(sig, refsig, fs, lowcut=None, highcut=None, interp=None, baslik=""):
     """
     İstenen sırayla tüm adımları çizer ve tau'yu işaretler.
     Band geçişi 'freq-mode' ile frekans domeninde maskeyle yapılır (faz bozulmaz).
@@ -66,7 +64,7 @@ def plot_full_gcc_phat_pipeline_TR(sig, refsig, fs, lowcut=None, highcut=None, i
     SIG    = fft(sig,    n=n)
     REFSIG = fft(refsig, n=n)
 
-    # R_raw = S(f) * R*(f)  (çarpma -> korelasyon uzayına gidecek bilgi)
+    # R_raw = S(f) * R*(f)  (çarpma -> korelasyon uz ayına gidecek bilgi)
     R_raw_full = SIG * np.conj(REFSIG)
 
     # Sadece istenen frekans bandı katkı yapsın (freq-mode)
@@ -122,7 +120,7 @@ def plot_full_gcc_phat_pipeline_TR(sig, refsig, fs, lowcut=None, highcut=None, i
         lags1_ms = None
         center1 = None
         peak_idx = int(np.argmax(cc_mag_c))
-        tau = (peak_idx - center0) / fs
+        tau = 2*(peak_idx - center0) / fs
 
     # ---------------- (E) ÇİZİMLER ----------------
     # FIG-1: İstenen sıralama: Spektrum -> Zaman (ham) -> Zaman (band) -> FFT (band/ham)
@@ -244,7 +242,7 @@ fs = None
 
 # 4 mikrofonun wav dosyalarını okuma
 for i in range(1, 5):
-    pre_file = r"D:\github\ssl_new\sound_source_localisation"
+    pre_file = r"sound_source_localisation"
     if i <= 9:
         filename = pre_file + f'\mic{i}.wav'
     fs, data = wavfile.read(filename)
@@ -264,14 +262,14 @@ for idx, m in enumerate(mic_data):
         continue
     
 # ---- YENİ: Her mic için adım adım görselleştirme ----
-INTERP  = 16      # interpolasyon faktörü (<=1 kapalı)
+INTERP  = None      # interpolasyon faktörü (<=1 kapalı)
 LOWCUT  = None    # örn: 300
 HIGHCUT = None    # örn: 3400
 
 # TDOA hesaplama (mevcut yapıyı BOZMADAN)
 tdoas = gpi.gcc_phat_array(mic_data, ref_mic, fs=fs, interp=INTERP,
                            lowcut=LOWCUT, highcut=HIGHCUT)
-f = open("tdoa/tdoas.txt", "w")
+f = open(r"sound_source_localisation\tdoa\tdoas.txt", "w")
 for tdoa in tdoas:
     f.write((str(tdoa)+"\n"))
 f.close()

@@ -74,10 +74,10 @@ def __gcc_phat(sig, refsig, fs=1, lowcut=None, highcut=None):
 
     # Cross-power spectrum ve PHAT ağırlığı
     R = SIG * np.conj(REFSIG)
-    R /= (np.abs(R) + 1e-15)
+    W = 1/np.abs(R)
 
     # Zamansal korelasyon
-    cc = ifft(R)
+    cc = ifft(W)
 
     # “Zero‐lag” merkezi elde etmek için kaydır
     cc = np.concatenate([cc[-n//2:], cc[:n//2]])
